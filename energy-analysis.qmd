@@ -1,0 +1,48 @@
+---
+title: "Lietuvos energetinių duomenų analizė"
+format: 
+    html: 
+        self-contained: true
+---
+
+## Duomenys
+
+Duomenys yra paimti iš Nordpool [puslapio](https://www.nordpoolgroup.com/en/Market-data1/). Paimti Lietuvos savaitiniai agreguoti duomenys: 
+
+ 1. Elektros suvartojimas, MWh
+ 2. Elektros pagaminimas, MWh
+ 3. Elektros kaina, EUR/MWh
+ 4. Elektros pagaminimas iš vėjo jėgainių, MWh
+
+```{r, echo = FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+```
+
+```{r}
+edt <- read.csv("data/energy_data.csv") %>% mutate(day = ymd(day)) %>% 
+    mutate(wg = 100*(wind/lag(wind)-1), pg = 100*(price/lag(price)-1))
+```
+
+```{r}
+ggplot(aes(x = day, y = wind/production), data = edt) + geom_line() + theme_bw()
+    
+```
+
+```{r}
+ggplot(aes(x = day, y = 100*wind/consumption), data = edt) + geom_line() + theme_bw() +
+    labs(x = "Savaitė", y = "Vėjo dalis, suvartojime, procentai", title = "Vėjo generuotos elektros energijos dalis visame elektros suvartojime")
+```
+
+```{r}
+ggplot(aes(x = day, y = price), data = edt %>% filter(!is.na(price))) + geom_line() + theme_bw() + 
+    labs(x = "Savaitė", y = "Kaina, EUR/MWh", title = "Elektros kaina Lietuvoje")
+```
+
+```{r}
+ggplot(aes(x = wg, y = pg, colour = Metai), data = edt %>% filter(!is.na(price)) %>% mutate(Metai = as.character(year))) +geom_point()+ theme_bw()+geom_hline(yintercept = 0) +
+    geom_vline(xintercept = 0 )+ geom_smooth(se = FALSE)+
+    scale_colour_manual(values =  RColorBrewer::brewer.pal(3, "Set1")[2:3]) + 
+    labs(x = "Savaitinis vėjo generavimo augimas, procentai",  y = "Savaitinis elektros kainos augimas, proc", title = "Elektros kainos priklausomybė nuo vėjo")
+```
