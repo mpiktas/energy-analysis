@@ -21,6 +21,10 @@ library(ggplot2)
 library(lubridate)
 ```
 
+## Analizė
+
+Pora elementarių save paaiškinančių grafikų.
+
 ```{r}
 edt <- read.csv("data/energy_data.csv") %>% mutate(day = ymd(day)) %>% 
     mutate(wg = 100*(wind/lag(wind)-1), pg = 100*(price/lag(price)-1))
